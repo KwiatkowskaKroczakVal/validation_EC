@@ -1,1 +1,43 @@
 
+wczytanieDanych <- function(sourceType, path_full = "", withHeaders = TRUE, separator = ";", NAsign = "",
+                            serverName = "", tableName = "", whereCond = ""){
+
+
+  require(odbc)
+  require(tictoc)
+  require(data.table)
+  require(readxl)
+
+  tic()
+
+  switch(sourceType,
+
+         "SQL"={
+           ch <- dbConnect(odbc(), serverName, encoding = "cp1250")
+           data <- dbGetQuery(ch, paste("select * from ", tableName, " ", whereCond))
+         },
+
+         "TERADATA"={
+           ch <- dbConnect(odbc(), "KHD_LIVE", encoding = "cp1250")
+           data <- dbGetQuery(ch, paste("select * from ", serverName, ".", tableName, " ", whereCond))
+           #dbDisconnect(ch)
+         },
+
+         "CSV"={
+           data <- data.frame(fread(path_full))
+         },
+
+         "XLSX"={
+           data <- read_excel(path_full)
+         },
+
+         "TXT"={
+           data <- data.frame(fread(path_full))
+         }
+  )
+
+  toc()
+
+  return(data)
+
+}
